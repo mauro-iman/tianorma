@@ -1,7 +1,7 @@
 // Acceso a Supabase para el bot (REST + RPC + Storage), con la service key. Sin dependencias.
 
-const URL_SB = process.env.SUPABASE_URL;
-const KEY_SB = process.env.SUPABASE_SERVICE_KEY;
+const URL_SB = process.env.SUPABASE_URL?.trim().replace(/\/+$/, '');
+const KEY_SB = process.env.SUPABASE_SERVICE_KEY?.trim();
 
 async function sb(ruta, { method = 'GET', body, headers = {}, crudo = false } = {}) {
   const resp = await fetch(`${URL_SB}${ruta}`, {

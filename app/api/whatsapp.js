@@ -7,7 +7,7 @@ import { db } from '../lib/bot/db.js';
 import { prepararFoto, transcribir } from '../lib/bot/medios.js';
 import { crearBot } from '../lib/bot/ejecutar.js';
 
-const SLUG_NORMA = process.env.NORMA_SLUG || 'norma';
+const SLUG_NORMA = (process.env.NORMA_SLUG || 'norma').trim().toLowerCase();
 const BASE = (process.env.PUBLIC_URL
   || (process.env.VERCEL_PROJECT_PRODUCTION_URL && `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}`)
   || 'http://localhost:3000').replace(/\/$/, '');

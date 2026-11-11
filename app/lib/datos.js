@@ -3,12 +3,20 @@
 
 import { catalogosDeEjemplo } from './ejemplo.js';
 
-const URL_SB = process.env.SUPABASE_URL;
-const KEY_SB = process.env.SUPABASE_SERVICE_KEY;
+const URL_SB = process.env.SUPABASE_URL?.trim().replace(/\/+$/, '');
+const KEY_SB = process.env.SUPABASE_SERVICE_KEY?.trim();
 
 export const usandoEjemplo = !URL_SB && !process.env.VERCEL;
 
 export class ErrorDatos extends Error {}
+
+function rolDeJwt(token) {
+  try {
+    return JSON.parse(Buffer.from(token.split('.')[1], 'base64url').toString()).role;
+  } catch {
+    return null;
+  }
+}
 
 export function urlFoto(fotoPath) {
   if (/^(https?:)?\//.test(fotoPath)) return fotoPath; // ya es una URL (datos de ejemplo)
@@ -42,7 +50,13 @@ export async function obtenerCatalogo(slug) {
   if (!resp.ok) throw new ErrorDatos(`Supabase respondió ${resp.status}: ${await resp.text()}`);
 
   const [fila] = await resp.json();
-  if (!fila) return null;
+  if (!fila) {
+    // Con RLS activo, la clave pública (anon / publishable) no ve nada y devuelve una lista vacía, sin error.
+    if (/^sb_publishable_/.test(KEY_SB) || rolDeJwt(KEY_SB) === 'anon') {
+      console.error('[datos] SUPABASE_SERVICE_KEY parece ser la clave pública (anon). Hace falta la service_role / secret.');
+    }
+    return null;
+  }
 
   return {
     nombre: fila.nombre,

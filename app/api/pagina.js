@@ -4,7 +4,7 @@
 import { obtenerCatalogo } from '../lib/datos.js';
 import { paginaCatalogo, paginaError } from '../lib/render.js';
 
-const SLUG_NORMA = process.env.NORMA_SLUG || 'norma';
+const SLUG_NORMA = (process.env.NORMA_SLUG || 'norma').trim().toLowerCase();
 const SLUG_VALIDO = /^[a-z0-9-]{3,40}$/;
 
 function slugDe(req) {
