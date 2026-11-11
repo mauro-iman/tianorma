@@ -28,7 +28,7 @@ Esto lo tiene que hacer Mauro: requiere cuentas, un chip y aceptar los términos
 
 ## 5. Pasar a modo Live
 
-- [ ] Cargar una **URL de política de privacidad** (podemos servirla desde el mismo sitio).
+- [ ] URL de política de privacidad: `https://tianorma.vercel.app/privacidad`.
 - [ ] Cambiar la app de *Development* a *Live*.
 - [ ] Probar desde un celular que **no** sea de los números de prueba.
 

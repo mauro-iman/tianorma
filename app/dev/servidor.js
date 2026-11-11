@@ -39,7 +39,9 @@ http.createServer(async (req, res) => {
   }
 
   try {
-    const archivo = await readFile(path.join(raiz, '..', 'public', path.normalize(pathname)));
+    const ruta = path.join(raiz, '..', 'public', path.normalize(pathname));
+    const archivo = await readFile(ruta).catch(() => readFile(`${ruta}.html`));
+    if (/\.html$|^[^.]*$/.test(pathname)) res.setHeader('Content-Type', 'text/html; charset=utf-8');
     return res.end(archivo);
   } catch {
     res.statusCode = 404;

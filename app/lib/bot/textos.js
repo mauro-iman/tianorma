@@ -43,7 +43,10 @@ export const textos = {
     precio: (a, p) => `*${p.titulo}* ahora sale *${$(a.precio)}*`,
     titulo: (a, p) => `Cambiarle el nombre a *${p.titulo}* por *${a.titulo}*`,
     foto: (a, p) => `Cambiar la foto de *${p.titulo}*`,
+    'borrar-datos': () => `Borrar tu página de prueba, con todas sus fotos, y tus datos. No se puede deshacer`,
   },
+  datosBorrados: () => `Listo, borré tu página y tus datos. Si me volvés a escribir, empezamos de cero.`,
+  noSeBorraLaReal: () => `Esta es la página real de Norma: no se puede borrar desde acá.`,
 
   vendida: (titulo) =>
     `¡Qué bien! Saqué *${titulo}* de la página.\n\nSi fue un error, respondé a la foto con *disponible*.`,

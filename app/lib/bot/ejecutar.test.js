@@ -45,6 +45,12 @@ function armar() {
     async borrarPieza(pid) { const i = piezas.findIndex((x) => x.id === pid); if (i >= 0) piezas.splice(i, 1); },
     async agregarReferencia(mid, pid) { referencias.set(mid, pid); },
     async subirFoto(ruta) { return ruta; },
+    async borrarCatalogo(cid) {
+      for (let i = piezas.length - 1; i >= 0; i--) if (piezas[i].catalogo_id === cid) piezas.splice(i, 1);
+      const c = catalogos.find((x) => x.id === cid);
+      catalogos.splice(catalogos.indexOf(c), 1);
+      conversaciones.delete(c.telefono);
+    },
   };
 
   const wa = {
@@ -231,6 +237,22 @@ test('vendí el jarrón sin responder: pregunta y confirma', async () => {
   assert.match(t.ultimo().texto, /Entendí esto:\n\*Jarrón azul\* se vendió/);
   await t.decir(NORMA, 'sí');
   assert.equal(t.piezas[0].estado, 'vendida');
+});
+
+test('"borrar mis datos": el jurado borra su página; la de Norma no se puede borrar', async () => {
+  const t = armar();
+  await t.foto(JURADO, 'Taza 5000');
+  await t.decir(JURADO, 'Borrar mis datos');
+  assert.match(t.ultimo().texto, /Borrar tu página de prueba.*No se puede deshacer/s);
+  await t.decir(JURADO, 'sí');
+  assert.match(t.ultimo().texto, /borré tu página y tus datos/);
+  assert.equal(t.piezas.length, 0);
+  t.leer();
+  await t.decir(JURADO, 'hola');
+  assert.match(t.ultimo().texto, /página de prueba/, 'empieza de cero');
+
+  await t.decir(NORMA, 'borrar mis datos');
+  assert.match(t.ultimo().texto, /no se puede borrar/);
 });
 
 test('si falla algo, avisa con un mensaje amable', async () => {

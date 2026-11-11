@@ -26,6 +26,7 @@ const RE = {
   ayuda: /^(hola+|buenas|buen dia|buenos dias|buenas tardes|buenas noches|ayuda|ayudame|menu|como (se )?(hago|funciona|es)|que hago|instrucciones|\?+|empezar|inicio)\b/,
   lista: /^(lista|la lista|mis piezas|que tengo|que hay|que piezas tengo|ver lista|ver piezas|piezas|inventario|catalogo)[\s?!.]*$/,
   link: /^(link|el link|enlace|pagina|mi pagina|la pagina|direccion|ver pagina|ver mi pagina|pasame el link|cual es (el link|la pagina|mi pagina))[\s?!.]*$/,
+  borrarDatos: /^(borrar|borra|borrame|eliminar|elimina) (mis|todos mis|los) datos[\s?!.]*$|^(borrar|borra|borrame|eliminar) mi pagina[\s?!.]*$/,
   deshacer: /^(deshacer|deshace|deshacelo|me equivoque|volver atras|volve atras|error|era un error|anular)[\s?!.]*$/,
   gracias: /^(gracias|muchas gracias|mil gracias|grac|gracias!+|genia|genio|que bien|barbaro)[\s?!.]*$/,
   cortesia: /^(listo|ok|okey|bueno|joya|perfecto|dale|jaja+|jeje+|👍|👌|🙂|😊|❤️|♥️)[\s?!.]*$/u,
@@ -93,6 +94,7 @@ function interpretarSinConfirmar(msg, ctx) {
   if (tiene(n, RE.lista)) return { tipo: 'lista' };
   if (tiene(n, RE.link)) return { tipo: 'link' };
   if (tiene(n, RE.deshacer)) return { tipo: 'deshacer' };
+  if (tiene(n, RE.borrarDatos)) return { tipo: 'confirmar', accion: { tipo: 'borrar-datos' } };
   if (tiene(n, RE.gracias)) return { tipo: 'de-nada' };
   if (tiene(n, RE.cortesia)) return { tipo: 'nada' };
   if (!piezaRespondida && tiene(n, RE.ayuda) && !extraerPieza(texto).precio) return { tipo: 'ayuda' };

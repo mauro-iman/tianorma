@@ -111,6 +111,17 @@ export const db = {
     });
   },
 
+  /** Borra una página de prueba entera: sus fotos en Storage y, en cascada, piezas, referencias y conversación. */
+  async borrarCatalogo(catalogoId) {
+    const objetos = await sb('/storage/v1/object/list/fotos', {
+      method: 'POST',
+      body: { prefix: catalogoId, limit: 1000 },
+    });
+    const rutas = (objetos ?? []).map((o) => `${catalogoId}/${o.name}`);
+    if (rutas.length) await sb('/storage/v1/object/fotos', { method: 'DELETE', body: { prefixes: rutas } });
+    await sb(`/rest/v1/catalogos?${q({ id: `eq.${catalogoId}`, es_prueba: 'eq.true' })}`, { method: 'DELETE' });
+  },
+
   async subirFoto(ruta, buffer, contentType) {
     await sb(`/storage/v1/object/fotos/${ruta}`, {
       method: 'POST',

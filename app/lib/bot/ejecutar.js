@@ -136,6 +136,7 @@ export function crearBot(deps) {
         if (a.tipo === 'foto') a.fotoMsgId = m.msgId;
         const p = a.piezaId ? buscar(a.piezaId) : null;
         if (a.piezaId && !p) { respuesta = textos.cualPieza(); pendiente = null; break; }
+        if (a.tipo === 'borrar-datos' && !catalogo.es_prueba) { respuesta = textos.noSeBorraLaReal(); pendiente = null; break; }
         pendiente = { tipo: 'confirmar', accion: a };
         respuesta = textos.confirmar(textos.resumen[a.tipo](a, p));
         break;
@@ -169,6 +170,13 @@ export function crearBot(deps) {
         piezaDeLaRespuesta = p.id;
         ultima = { tipo: 'editar', piezaId: p.id, antes: snapshot(p) };
         break;
+      }
+
+      case 'borrar-datos': {
+        if (!catalogo.es_prueba) { respuesta = textos.noSeBorraLaReal(); pendiente = null; break; }
+        await db.borrarCatalogo(catalogo.id); // borra fotos, piezas y la conversación
+        await ctx.responder(textos.datosBorrados(), { responderA: m.msgId });
+        return; // ya no queda conversación que guardar
       }
 
       case 'ya-vendida': respuesta = textos.yaVendida(buscar(accion.piezaId).titulo); break;
