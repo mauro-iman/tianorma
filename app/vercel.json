@@ -1,0 +1,12 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "regions": ["gru1"],
+  "outputDirectory": "public",
+  "functions": {
+    "api/whatsapp.js": { "maxDuration": 60 }
+  },
+  "rewrites": [
+    { "source": "/", "destination": "/api/pagina" },
+    { "source": "/p/:slug", "destination": "/api/pagina?slug=:slug" }
+  ]
+}

@@ -1,0 +1,2 @@
+Versiones limpias en SVG de cada boceto (escena-01.svg, ...).
+Solo limpieza y vectorizado, sin agregar elementos (AGENTS.md §5).
