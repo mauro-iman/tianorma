@@ -23,7 +23,7 @@ const bot = crearBot({
 
 export async function GET(request) {
   const p = new URL(request.url).searchParams;
-  if (p.get('hub.mode') === 'subscribe' && p.get('hub.verify_token') === process.env.WHATSAPP_VERIFY_TOKEN) {
+  if (p.get('hub.mode') === 'subscribe' && p.get('hub.verify_token') === process.env.WHATSAPP_VERIFY_TOKEN?.trim()) {
     return new Response(p.get('hub.challenge') ?? '', { status: 200 });
   }
   return new Response('Forbidden', { status: 403 });
@@ -32,6 +32,7 @@ export async function GET(request) {
 export async function POST(request) {
   const crudo = await request.text();
   if (!firmaValida(crudo, request.headers.get('x-hub-signature-256'))) {
+    console.error('[webhook] Firma inválida: revisá que WHATSAPP_APP_SECRET sea el "App secret" de la app de Meta.');
     return new Response('Firma inválida', { status: 401 });
   }
 
@@ -47,7 +48,13 @@ export async function POST(request) {
       const v = change.value ?? {};
       // Mensajes de una misma persona, en orden. (Los "statuses" de entrega se ignoran.)
       for (const m of v.messages ?? []) {
+        // Sin contenido ni número completo en los logs: solo lo necesario para diagnosticar.
+        console.log(`[webhook] mensaje ${m.type} de …${String(m.from).slice(-4)}${m.context ? ' (respuesta)' : ''}`);
         await bot.procesar(normalizarMensaje(m, v.contacts));
+      }
+      for (const s of v.statuses ?? []) {
+        // Si Meta no pudo entregar una respuesta del bot, el motivo llega acá.
+        if (s.status === 'failed') console.error('[webhook] Meta no pudo entregar un mensaje:', JSON.stringify(s.errors));
       }
     }
   }

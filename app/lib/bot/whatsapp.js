@@ -3,8 +3,8 @@
 import crypto from 'node:crypto';
 
 const VERSION = process.env.WHATSAPP_GRAPH_VERSION || 'v23.0';
-const TOKEN = process.env.WHATSAPP_TOKEN;
-const PHONE_ID = process.env.WHATSAPP_PHONE_NUMBER_ID;
+const TOKEN = process.env.WHATSAPP_TOKEN?.trim();
+const PHONE_ID = process.env.WHATSAPP_PHONE_NUMBER_ID?.trim();
 const GRAPH = `https://graph.facebook.com/${VERSION}`;
 
 async function graph(ruta, opciones = {}) {
@@ -17,20 +17,42 @@ async function graph(ruta, opciones = {}) {
   return resp.json();
 }
 
+// WhatsApp identifica a los celulares argentinos con un 9 (549 11 ...) y a los mexicanos con un 1 (521 ...),
+// pero la API a veces solo acepta enviarles SIN ese dígito (sobre todo con el número de prueba y su lista de destinatarios).
+// Si el envío falla, se reintenta sin él y se recuerda el formato que funcionó.
+const formatoQueAnda = new Map();
+
+export function sinNueveMovil(numero) {
+  if (/^549\d{10}$/.test(numero)) return `54${numero.slice(3)}`;
+  if (/^521\d{10}$/.test(numero)) return `52${numero.slice(3)}`;
+  return null;
+}
+
 export const wa = {
   /** Manda un texto. Si `responderA` viene, el mensaje aparece citando ese mensaje. Devuelve el id del mensaje enviado. */
   async enviarTexto(para, cuerpo, { responderA } = {}) {
-    const r = await graph(`/${PHONE_ID}/messages`, {
+    const enviar = (to) => graph(`/${PHONE_ID}/messages`, {
       method: 'POST',
       body: JSON.stringify({
         messaging_product: 'whatsapp',
-        to: para,
+        to,
         type: 'text',
         text: { body: cuerpo, preview_url: false },
         ...(responderA ? { context: { message_id: responderA } } : {}),
       }),
     });
-    return r.messages?.[0]?.id ?? null;
+    const destino = formatoQueAnda.get(para) ?? para;
+    try {
+      const r = await enviar(destino);
+      return r.messages?.[0]?.id ?? null;
+    } catch (e) {
+      const alternativo = sinNueveMovil(destino);
+      if (!alternativo) throw e;
+      console.error(`[whatsapp] Falló el envío a ${destino}; reintento como ${alternativo}.`, e.message);
+      const r = await enviar(alternativo);
+      formatoQueAnda.set(para, alternativo);
+      return r.messages?.[0]?.id ?? null;
+    }
   },
 
   /** Tildes azules: "lo leí". */
@@ -51,7 +73,7 @@ export const wa = {
 };
 
 /** Verifica que el webhook venga de Meta (cabecera X-Hub-Signature-256). */
-export function firmaValida(cuerpoCrudo, cabecera, secreto = process.env.WHATSAPP_APP_SECRET) {
+export function firmaValida(cuerpoCrudo, cabecera, secreto = process.env.WHATSAPP_APP_SECRET?.trim()) {
   if (!secreto || !cabecera?.startsWith('sha256=')) return false;
   const esperada = crypto.createHmac('sha256', secreto).update(cuerpoCrudo).digest('hex');
   const recibida = cabecera.slice(7);

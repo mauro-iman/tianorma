@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import crypto from 'node:crypto';
 import sharp from 'sharp';
 import { prepararFoto, limpiarTranscripcion } from './medios.js';
-import { firmaValida, normalizarMensaje } from './whatsapp.js';
+import { firmaValida, normalizarMensaje, sinNueveMovil } from './whatsapp.js';
 
 test('prepararFoto achica a 1000 px, respeta la rotación EXIF y pasa a WebP', async () => {
   // Foto "acostada" de 2000x1000 marcada con orientación 6 (girada 90°), como sale de muchos celulares.
@@ -52,4 +52,12 @@ test('normalizarMensaje', () => {
   assert.equal(normalizarMensaje({ from: '1', id: 'w', type: 'document', document: { id: 'd', mime_type: 'application/pdf' } }).tipo, 'otro');
   assert.equal(normalizarMensaje({ from: '1', id: 'w', type: 'reaction' }).tipo, 'ignorar');
   assert.equal(normalizarMensaje({ from: '1', id: 'w', type: 'sticker' }).tipo, 'otro');
+});
+
+test('número alternativo sin el 9 (AR) o el 1 (MX) para reintentar el envío', () => {
+  assert.equal(sinNueveMovil('5491112345678'), '541112345678');
+  assert.equal(sinNueveMovil('5493514567890'), '543514567890');
+  assert.equal(sinNueveMovil('5215512345678'), '525512345678');
+  assert.equal(sinNueveMovil('541112345678'), null);
+  assert.equal(sinNueveMovil('15551234567'), null);
 });
